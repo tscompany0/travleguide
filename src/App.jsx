@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapPin, Calendar, Compass, Coffee, Utensils, Train, Search, Plus, Trash2, ChevronRight, Heart, Sun, Sparkles, X, Loader2, MessageCircle, Camera, Wallet, CheckSquare, Calculator, ClipboardList, BedDouble, Home, Building, Tent, TrendingUp, CloudSun, Newspaper, ArrowRight, Settings, Globe, Gift, UtensilsCrossed, ShoppingBag, ExternalLink, Bot, Save, RefreshCw, Share2, Copy } from 'lucide-react';
+import { MapPin, Calendar, Compass, Coffee, Utensils, Train, Search, Plus, Trash2, ChevronRight, Heart, Sun, Sparkles, X, Loader2, MessageCircle, Camera, Wallet, CheckSquare, Calculator, ClipboardList, BedDouble, Home, Building, Tent, TrendingUp, CloudSun, Newspaper, ArrowRight, Settings, Globe, Gift, UtensilsCrossed, ShoppingBag, ExternalLink, Bot, Copy, RefreshCw, Save, AlertTriangle, Share2 } from 'lucide-react';
 
-// --- [핵심] 로컬 스토리지 훅 (데이터 영구 저장) ---
+// 👇👇👇 [필수] 여기에 본인의 Gemini API 키를 붙여넣으세요! 👇👇👇
+const apiKey = "AIzaSyBMEv-8J-yhzJBJ8D6e5Gh522-Ta_JE-Xg"; 
+// 👆👆👆 키가 없으면 AI 기능 대신 '예시 데이터'만 나옵니다.
+
+// --- [핵심] 로컬 스토리지 훅 ---
 const useLocalStorage = (key, initialValue) => {
   const [storedValue, setStoredValue] = useState(() => {
     if (typeof window === "undefined") return initialValue;
@@ -13,7 +17,6 @@ const useLocalStorage = (key, initialValue) => {
       return initialValue;
     }
   });
-
   const setValue = (value) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
@@ -28,7 +31,7 @@ const useLocalStorage = (key, initialValue) => {
   return [storedValue, setValue];
 };
 
-// --- 메인 아이콘 (고화질 로봇) ---
+// --- 메인 아이콘 ---
 const AppLogo = () => {
     const logoUrl = "https://cdn-icons-png.flaticon.com/512/4712/4712109.png"; 
     return (
@@ -48,9 +51,7 @@ const AppLogo = () => {
 // --- 다국어 데이터 ---
 const translations = {
   ko: {
-    lang_label: "한국어",
-    title: "스마트 여행비서",
-    subtitle: "K-Travel Helper",
+    lang_label: "한국어", title: "스마트 여행비서", subtitle: "K-Travel Helper",
     tab_home: "홈", tab_stay: "숙소", tab_schedule: "일정", tab_chat: "AI챗",
     weather_title: "오늘의 날씨", weather_desc: "여행하기 딱 좋은 날씨! 🌤️",
     ai_briefing: "AI 브리핑", ai_briefing_desc: "이번 주말 한강공원,\n야시장 축제가 열려요!",
@@ -70,7 +71,8 @@ const translations = {
     souvenir_title: "AI 기념품 큐레이터", souvenir_desc: "여행지에서 꼭 사야 할 쇼핑 리스트",
     loading_msgs: ["여행지 정보를 스캔하고 있어요... 📡", "현지인 리뷰를 분석 중입니다... 🧐", "최적의 동선을 계산하고 있어요... 🗺️", "맛집 데이터를 불러오는 중... 🍜"],
     reset_data: "데이터 초기화", alert_reset: "모든 여행 데이터가 삭제됩니다. 계속하시겠습니까?", toast_reset: "초기화되었습니다.",
-    share_btn: "친구에게 공유", share_toast: "클립보드에 복사되었습니다!",
+    error_fallback: "AI 연결이 불안정하여 추천 정보를 대신 보여드립니다!",
+    share_btn: "공유", share_toast: "복사되었습니다!", no_api_key: "API 키가 설정되지 않았습니다. 코드를 확인해주세요!",
     quick_qs: ["제주도 2박3일 코스 추천해줘", "부산 돼지국밥 맛집 알려줘", "경주 황리단길 핫플 어디야?", "강릉 1인 여행 예산 얼마야?"],
     
     magazine_items: [
@@ -81,22 +83,54 @@ const translations = {
     ],
     trending_keywords: ['제주도 투명 카약', '강릉 서핑 강습', '서울 한강 피크닉', '부산 해변 열차']
   },
-  // (다른 언어 생략 - 실제 구현 시 동일 패턴 적용)
+  en: {
+    lang_label: "English", title: "Smart Travel Assistant", subtitle: "K-Travel Helper",
+    tab_home: "Home", tab_stay: "Stay", tab_schedule: "Plan", tab_chat: "AI Chat",
+    weather_title: "Weather", weather_desc: "Perfect day for travel! 🌤️",
+    ai_briefing: "AI Briefing", ai_briefing_desc: "Han River Night Market\nopens this weekend!",
+    hero_tag: "AI Recommendation", hero_title: "Cozy Korea Trip,\nPlanned by AI.", hero_desc: "Complete course in 1 min with just location & theme ✨", hero_btn: "Create Plan",
+    tools_title: "Smart Tools", tool_food: "AI Foodie", tool_souvenir: "AI Souvenir", tool_budget: "Budget", tool_packing: "Packing",
+    tool_ai_plan: "AI Plan", tool_ai_budget: "Budget", tool_ai_packing: "Packing",
+    day_unit: "Day", schedule_items_count: "Items",
+    mag_title: "Travel Magazine", mag_more: "View All", trend_title: "Trending Keywords",
+    search_placeholder: "Ex: Seoul Forest, Busan Yacht", map_btn: "Search on Map",
+    stay_title: "Where to stay?", stay_desc: "Finding healing stays with forest views",
+    schedule_title: "My Itinerary 📝", schedule_empty: "No plans yet 😅\nAsk AI to plan!", schedule_ai_btn: "Generate Plan",
+    chat_title: "Ask me anything!", chat_desc: "Budget, Weather, Dialect, Food recommendations", chat_placeholder: "Type your question...",
+    modal_ai_title: "AI Travel Planner", modal_city: "City", modal_days: "Duration (Days)", modal_theme: "Theme", modal_btn: "Generate Plan ✨",
+    packing_title: "Smart Packing", packing_desc: "Packing list based on weather & theme",
+    budget_title: "Estimated Budget", budget_total: "Total per person",
+    food_title: "AI Foodie Guide", food_desc: "Local food recommendations based on your taste", food_placeholder: "Type food (Empty for auto)",
+    souvenir_title: "AI Souvenir Curator", souvenir_desc: "Must-buy shopping list for this city",
+    loading_msgs: ["Scanning travel spots... 📡", "Analyzing local reviews... 🧐", "Calculating best route... 🗺️", "Fetching food data... 🍜"],
+    reset_data: "Reset Data", alert_reset: "All data will be deleted. Continue?", toast_reset: "Data reset complete.",
+    error_fallback: "Connection unstable. Showing recommendations instead!",
+    share_btn: "Share", share_toast: "Copied!", no_api_key: "API Key missing. Check code!",
+    quick_qs: ["Recommend 3-day Jeju trip", "Best Pork Soup in Busan?", "Hotspots in Gyeongju?", "Budget for Gangneung trip?"],
+    
+    magazine_items: [
+      { title: 'Green Healing,\nDamyang Bamboo Forest', sub: 'Full of Phytoncide', tag: '#Healing', query: 'Damyang Bamboo Forest', image: 'https://images.unsplash.com/photo-1596524430615-b46476dd9feb?w=600&q=80' },
+      { title: 'Seoul Forest View\nBest Restaurants', sub: 'Urban Break', tag: '#SeoulFood', query: 'Seoul Forest Restaurants', image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&q=80' },
+      { title: 'Gangwon-do Car Camping\nStar Gazing Spots', sub: 'Romantic Camping', query: 'Gangwon-do Camping', tag: '#Camping', image: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=600&q=80' },
+      { title: 'Jeju Emerald\nBeach Collection', sub: 'Best Photo Spots', tag: '#JejuBeach', query: 'Jeju Beach', image: 'https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?w=600&q=80' },
+    ],
+    trending_keywords: ['Jeju Transparent Kayak', 'Gangneung Surfing', 'Han River Picnic', 'Busan Beach Train']
+  },
+  // (다른 언어는 기본값으로 처리되거나 추가 가능)
 };
 
 export default function App() {
-  // --- 상태 관리 ---
+  // State
   const [language, setLanguage] = useLocalStorage('ktravel_lang', 'ko');
   const [schedule, setSchedule] = useLocalStorage('ktravel_schedule', []);
-  const [chatHistory, setChatHistory] = useLocalStorage('ktravel_chat', [{ role: 'ai', text: '안녕하세요! 🌿 무엇을 도와드릴까요? (Hello! How can I help you?)' }]);
+  const [chatHistory, setChatHistory] = useLocalStorage('ktravel_chat', [{ role: 'ai', text: '안녕하세요! 🌿 무엇을 도와드릴까요?' }]);
   const [packingList, setPackingList] = useLocalStorage('ktravel_packing', {});
   
   const [activeTab, setActiveTab] = useState('home');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [toastMsg, setToastMsg] = useState(''); // 토스트 메시지 상태
+  const [toastMsg, setToastMsg] = useState('');
 
-  // --- AI & Modal States ---
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
@@ -108,57 +142,54 @@ export default function App() {
 
   const [isPackingLoading, setIsPackingLoading] = useState(false);
   const [showPackingModal, setShowPackingModal] = useState(false);
-
   const [budgetResult, setBudgetResult] = useState(null);
   const [isBudgetLoading, setIsBudgetLoading] = useState(false);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
-
   const [showFoodModal, setShowFoodModal] = useState(false);
   const [foodPreference, setFoodPreference] = useState('');
   const [foodList, setFoodList] = useState([]);
   const [isFoodLoading, setIsFoodLoading] = useState(false);
-
   const [showSouvenirModal, setShowSouvenirModal] = useState(false);
   const [souvenirList, setSouvenirList] = useState([]);
   const [isSouvenirLoading, setIsSouvenirLoading] = useState(false);
 
-  const apiKey = ""; // Gemini API Key
-
   // Helper
   const t = (key) => (translations[language] || translations['ko'])[key] || translations['ko'][key];
+  
+  // [오류 수정 핵심] 변수 선언 복구
   const currentMagazineItems = translations[language]?.magazine_items || translations['ko'].magazine_items;
   const currentTrending = translations[language]?.trending_keywords || translations['ko'].trending_keywords;
   const quickQuestions = translations[language]?.quick_qs || translations['ko'].quick_qs;
 
-  // 스크롤 및 토스트 효과
+  // Scroll & Toast
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [activeTab]);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatHistory, isChatLoading]);
   useEffect(() => {
-      if(toastMsg) {
-          const timer = setTimeout(() => setToastMsg(''), 3000);
-          return () => clearTimeout(timer);
-      }
+      if(toastMsg) { const timer = setTimeout(() => setToastMsg(''), 3000); return () => clearTimeout(timer); }
   }, [toastMsg]);
 
-  // 로딩 메시지 롤링
+  // Loading Text Animation
   useEffect(() => {
       let interval;
-      if (isGenerating || isPackingLoading || isBudgetLoading || isFoodLoading || isSouvenirLoading) {
+      const isLoading = isGenerating || isPackingLoading || isBudgetLoading || isFoodLoading || isSouvenirLoading;
+      if (isLoading) {
           const msgs = translations[language]?.loading_msgs || translations['ko'].loading_msgs;
           setLoadingMsg(msgs[Math.floor(Math.random() * msgs.length)]);
-          interval = setInterval(() => {
-              setLoadingMsg(msgs[Math.floor(Math.random() * msgs.length)]);
-          }, 2000);
+          interval = setInterval(() => { setLoadingMsg(msgs[Math.floor(Math.random() * msgs.length)]); }, 2000);
       }
       return () => clearInterval(interval);
   }, [isGenerating, isPackingLoading, isBudgetLoading, isFoodLoading, isSouvenirLoading, language]);
 
+  // JSON Parser
   const cleanAndParseJSON = (text) => {
     try {
-      const jsonMatch = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+      const jsonMatch = text.match(/\[\s*\{[\s\S]*\}\s*\]|\{\s*[\s\S]*\s*\}/); 
       if (jsonMatch) return JSON.parse(jsonMatch[0]);
       return JSON.parse(text);
-    } catch (e) { return null; }
+    } catch (e) { 
+      console.error("JSON Parse Error", e);
+      return null; 
+    }
   };
 
   const getLanguageName = (code) => {
@@ -166,37 +197,63 @@ export default function App() {
       if(code === 'zh') return 'Chinese';
       if(code === 'ja') return 'Japanese';
       return 'Korean';
-  }
+  };
 
-  // --- AI Functions (Safe Fallbacks) ---
-  const safeFetchAI = async (prompt, fallbackData, setter, finalizer) => {
+  // --- Unified AI Fetcher ---
+  const safeFetchAI = async (prompt, fallbackData, setter, finalizer, isChat = false) => {
+      if (!apiKey) {
+          alert(t('no_api_key'));
+          if(finalizer) finalizer();
+          return;
+      }
       try {
           const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
           });
           const data = await response.json();
-          const result = cleanAndParseJSON(data.candidates?.[0]?.content?.parts?.[0]?.text);
-          if (result) setter(result);
-          else throw new Error("Parse failed");
+          const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+          if (!resultText) throw new Error("Empty AI Response");
+
+          if (isChat) {
+              setter(resultText);
+          } else {
+              const result = cleanAndParseJSON(resultText);
+              if (result) setter(result);
+              else throw new Error("JSON Parse Failed");
+          }
       } catch (error) {
-          console.warn("AI Fetch Failed, using fallback.");
-          setter(fallbackData);
+          console.warn("AI Error:", error);
+          if (isChat) setter(typeof fallbackData === 'string' ? fallbackData : "죄송해요, 연결이 불안정하네요 😅");
+          else {
+              alert(t('error_fallback'));
+              setter(fallbackData);
+          }
       } finally {
           if (finalizer) finalizer();
       }
   };
 
+  // --- Features ---
   const generateAIItinerary = () => {
     if (!aiPrompt.city || !aiPrompt.duration) return;
     setIsGenerating(true);
     const langName = getLanguageName(language);
-    const prompt = `Destination: ${aiPrompt.city}, Duration: ${aiPrompt.duration} days, Theme: ${aiPrompt.theme}. Language: ${langName}. Create JSON array itinerary: [{"day": "1", "time": "HH:MM", "activity": "activity name in ${langName}", "type": "food|transport|spot"}]`;
+    const prompt = `
+      Act as a professional Korea travel planner.
+      Destination: ${aiPrompt.city}, Duration: ${aiPrompt.duration} days, Theme: ${aiPrompt.theme}.
+      Language: ${langName}.
+      Task: Create a detailed itinerary.
+      Format: JSON Array ONLY. No markdown.
+      Example: [{"day": "1", "time": "10:00", "activity": "Start at Seoul Station (KTX)", "type": "transport"}]
+      Ensure real place names and logical routing.
+    `;
     
     const fallback = [
-        { id: 101, day: '1', time: '10:00', activity: `${aiPrompt.city} 도착 (Arrival)`, type: 'transport' },
-        { id: 102, day: '1', time: '12:30', activity: '현지 맛집 탐방 (Local Food)', type: 'food' },
-        { id: 103, day: '1', time: '15:00', activity: '주요 랜드마크 관광 (Sightseeing)', type: 'spot' },
-        { id: 104, day: '2', time: '11:00', activity: '감성 카페에서 휴식 (Cafe)', type: 'spot' },
+        { id: 101, day: '1', time: '10:00', activity: `${aiPrompt.city} 도착 및 체크인`, type: 'transport' },
+        { id: 102, day: '1', time: '12:30', activity: `${aiPrompt.city} 대표 맛집 탐방`, type: 'food' },
+        { id: 103, day: '1', time: '15:00', activity: '주요 랜드마크 관광', type: 'spot' },
+        { id: 104, day: '2', time: '11:00', activity: '감성 카페에서 휴식', type: 'spot' },
     ];
     
     safeFetchAI(prompt, fallback, (data) => {
@@ -211,11 +268,8 @@ export default function App() {
   const generatePackingList = () => {
     setIsPackingLoading(true);
     const langName = getLanguageName(language);
-    const prompt = `Packing list for ${aiPrompt.city} in ${langName}. JSON only: {"essential": [], "clothing": [], "toiletries": [], "tech": []}`;
-    
-    const fallback = {
-        essential: ["여권/신분증", "지갑"], clothing: ["편한 옷", "속옷/양말"], toiletries: ["세면도구", "화장품"], tech: ["충전기", "카메라"]
-    };
+    const prompt = `Create a packing list for ${aiPrompt.city} (${aiPrompt.theme}). Language: ${langName}. Output JSON: {"essential": [], "clothing": [], "toiletries": [], "tech": []}`;
+    const fallback = { essential: ["신분증", "지갑"], clothing: ["편한 옷"], toiletries: ["세면도구"], tech: ["충전기"] };
     safeFetchAI(prompt, fallback, setPackingList, () => setIsPackingLoading(false));
   };
 
@@ -223,7 +277,7 @@ export default function App() {
     if(schedule.length === 0) return;
     setIsBudgetLoading(true); setShowBudgetModal(true);
     const langName = getLanguageName(language);
-    const prompt = `Estimate budget for this itinerary in KRW. Response in ${langName}. JSON only: {"total": 0, "comment": "comment in ${langName}"}`;
+    const prompt = `Estimate budget for this itinerary: ${JSON.stringify(schedule)}. Currency: KRW. Language: ${langName}. Output JSON: {"total": 0, "comment": "Short summary"}`;
     const fallback = { total: 350000, comment: "평균적인 2박 3일 여행 경비 (숙박/교통 포함)" };
     safeFetchAI(prompt, fallback, setBudgetResult, () => setIsBudgetLoading(false));
   };
@@ -231,8 +285,8 @@ export default function App() {
   const generateFoodRecommendations = () => {
       setIsFoodLoading(true); setFoodList([]);
       const langName = getLanguageName(language);
-      const userPref = foodPreference.trim() || "Famous Local Food";
-      const prompt = `Recommend 3 local dishes in ${aiPrompt.city} based on '${userPref}'. Description in ${langName}. JSON only: [{"name":"", "desc":"", "tag":""}]`;
+      const userPref = foodPreference.trim() || "Local Famous Food";
+      const prompt = `Recommend 3 specific restaurants or dishes in ${aiPrompt.city} for '${userPref}'. Language: ${langName}. Output JSON Array: [{"name":"", "desc":"", "tag":""}]`;
       const fallback = [{ name: "현지 대표 맛집", desc: "지역 주민들이 사랑하는 전통 음식점", tag: "#로컬맛집" }];
       safeFetchAI(prompt, fallback, setFoodList, () => setIsFoodLoading(false));
   };
@@ -240,7 +294,7 @@ export default function App() {
   const generateSouvenirList = () => {
       setIsSouvenirLoading(true); setSouvenirList([]);
       const langName = getLanguageName(language);
-      const prompt = `Recommend 4 souvenirs in ${aiPrompt.city}. Description in ${langName}. JSON only: [{"name":"", "price":"", "desc":""}]`;
+      const prompt = `Recommend 4 souvenirs in ${aiPrompt.city}. Language: ${langName}. Output JSON Array: [{"name":"", "price":"", "desc":""}]`;
       const fallback = [{ name: "지역 특산품", price: "20,000원~", desc: "선물하기 좋은 고급 패키지" }];
       safeFetchAI(prompt, fallback, setSouvenirList, () => setIsSouvenirLoading(false));
   };
@@ -249,42 +303,39 @@ export default function App() {
       const msg = message || chatInput;
       if(!msg.trim()) return;
       
-      setChatHistory(p => [...p, {role:'user', text:msg}]); 
+      const newHistory = [...chatHistory, {role:'user', text:msg}];
+      setChatHistory(newHistory);
       setChatInput(''); 
       setIsChatLoading(true);
       
-      try {
-          const langName = getLanguageName(language);
-          // 이전 대화 맥락 포함 (최근 5개만)
-          const context = chatHistory.slice(-5).map(c => `${c.role}: ${c.text}`).join('\n');
-          const prompt = `
-            Role: K-Travel Helper. Language: ${langName}.
-            Context: ${context}
-            Current Question: "${msg}"
-            Answer concisely, friendly, use emojis. If question is vague, ask for clarification.
-          `;
-          
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
-          const data = await response.json();
-          const aiRes = data.candidates?.[0]?.content?.parts?.[0]?.text || "죄송해요, 다시 말씀해 주시겠어요? 😅";
-          setChatHistory(p => [...p, {role:'ai', text:aiRes}]);
-      } catch(e) { 
-          setChatHistory(p => [...p, {role:'ai', text:"네트워크 상태가 좋지 않아요. 잠시 후 다시 시도해주세요! 😅"}]); 
-      } finally { setIsChatLoading(false); }
+      const langName = getLanguageName(language);
+      const context = newHistory.slice(-4).map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${m.text}`).join('\n');
+      const prompt = `
+        System: You are K-Travel Helper, a friendly travel assistant.
+        Language: ${langName}.
+        Context:
+        ${context}
+        
+        User Question: ${msg}
+        Response (Concise, use emojis):
+      `;
+      
+      safeFetchAI(prompt, "죄송해요, 네트워크 문제로 답변을 못 드렸어요 😅", (text) => {
+          setChatHistory(prev => [...prev, {role:'ai', text: text}]);
+      }, () => setIsChatLoading(false), true);
   };
 
-  // --- Share Function ---
   const shareSchedule = () => {
       if (schedule.length === 0) return;
-      const text = `[나의 여행 계획 ✈️]\n\n` + schedule.map(item => `• ${item.day}${t('day_unit')} ${item.time}: ${item.activity}`).join('\n');
-      navigator.clipboard.writeText(text).then(() => setToastMsg(t('share_toast')));
+      const text = `[✈️ K-Travel Helper]\n` + schedule.map(item => `• ${item.day}${t('day_unit')} ${item.time}: ${item.activity}`).join('\n');
+      navigator.clipboard.writeText(text).then(() => setToastMsg(t('share_toast'))).catch(() => alert("복사 실패"));
   };
 
-  // --- Search & Links ---
   const handleSearchMap = (keyword) => {
     if (!keyword && !searchQuery) return;
     window.open(`https://map.naver.com/p/search/${keyword || searchQuery}`, '_blank');
   };
+  
   const handleStaySearch = (platform, location = aiPrompt.city) => {
       let url = "";
       const query = location || "한국";
@@ -312,7 +363,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-stone-800 selection:bg-rose-200 pb-24">
-      {/* Toast Notification */}
+      {/* Toast */}
       {toastMsg && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-stone-800 text-white text-xs px-4 py-2 rounded-full shadow-lg z-[60] animate-fadeIn flex items-center gap-2">
             <CheckSquare size={14} className="text-green-400" /> {toastMsg}
@@ -340,7 +391,7 @@ export default function App() {
         {/* Home Tab */}
         {activeTab === 'home' && (
           <div className="animate-fadeIn space-y-6 pb-6">
-            {/* Weather & Briefing */}
+            {/* Weather & Briefing Widget */}
             <div className="flex gap-3">
                 <div className="flex-1 bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden">
                     <div className="flex justify-between items-start"><span className="text-xs font-bold text-stone-500">{t('weather_title')}</span><CloudSun size={20} className="text-orange-300" /></div>
@@ -386,7 +437,7 @@ export default function App() {
                 </div>
             </div>
 
-            {/* Magazine (Image Fallback) */}
+            {/* Magazine */}
             <section>
                 <div className="flex justify-between items-end mb-3 px-1">
                     <h3 className="font-bold text-lg text-stone-800 flex items-center gap-2"><Newspaper size={18} className="text-rose-400"/>{t('mag_title')}</h3>
@@ -404,6 +455,19 @@ export default function App() {
                                 <h4 className="text-white font-bold text-sm leading-snug mb-1 whitespace-pre-line drop-shadow-md">{card.title}</h4>
                                 <p className="text-white/80 text-[10px] font-medium">{card.sub}</p>
                             </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Trends */}
+            <section className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm">
+                <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2"><TrendingUp size={18} className="text-rose-400" />{t('trend_title')}</h3>
+                <div className="space-y-3">
+                    {currentTrending.map((keyword, idx) => (
+                        <div key={idx} onClick={() => handleSearchMap(keyword)} className="flex items-center justify-between cursor-pointer group py-1">
+                            <div className="flex items-center gap-3"><span className={`font-bold w-5 text-center ${idx < 3 ? 'text-rose-500' : 'text-stone-300'}`}>{idx + 1}</span><span className="text-sm text-stone-600 group-hover:text-stone-900 font-medium transition group-hover:translate-x-1 duration-200">{keyword}</span></div>
+                            <Search size={14} className="text-stone-300 group-hover:text-stone-500" />
                         </div>
                     ))}
                 </div>
@@ -430,15 +494,17 @@ export default function App() {
                   </button>
                 ))}
              </div>
+             <div className="bg-stone-100 p-4 rounded-2xl text-center text-xs text-stone-500">Tip: 각 플랫폼에서 <span className="font-bold text-stone-700">{aiPrompt.city || "여행지"}</span>를 검색해보세요!</div>
           </div>
         )}
 
-        {/* Schedule Tab (With Share) */}
+        {/* Schedule Tab */}
         {activeTab === 'schedule' && (
           <div className="space-y-5 animate-fadeIn">
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 <button onClick={() => setIsAIModalOpen(true)} className="flex-none bg-rose-400 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-rose-100 hover:bg-rose-500 transition flex items-center gap-1"><Sparkles size={14} /> {t('tool_ai_plan')}</button>
                 <button onClick={calculateBudget} className="flex-none bg-white text-stone-600 border border-stone-200 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-stone-50 transition flex items-center gap-1"><Calculator size={14} /> {t('tool_ai_budget')}</button>
+                <button onClick={() => { setShowPackingModal(true); if(Object.keys(packingList).length===0) generatePackingList(); }} className="flex-none bg-white text-stone-600 border border-stone-200 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-stone-50 transition flex items-center gap-1"><ClipboardList size={14} /> {t('tool_ai_packing')}</button>
                 <button onClick={shareSchedule} className="flex-none bg-stone-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-stone-900 transition flex items-center gap-1"><Share2 size={14} /> {t('share_btn')}</button>
             </div>
             <div className="flex justify-between items-center px-1"><h2 className="text-xl font-bold text-stone-800">{t('schedule_title')}</h2><span className="text-xs text-rose-500 bg-rose-50 px-2 py-1 rounded-lg font-bold border border-rose-100">{schedule.length} {t('schedule_items_count')}</span></div>
@@ -450,7 +516,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Chat Tab (Quick Chips) */}
+        {/* Chat Tab */}
         {activeTab === 'chat' && (
           <div className="h-[calc(100vh-180px)] flex flex-col animate-fadeIn">
              <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-200 mb-4 flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-500"><MessageCircle size={20} /></div><div><h3 className="font-bold text-stone-800 text-sm">{t('chat_title')}</h3><p className="text-xs text-stone-500">{t('chat_desc')}</p></div></div>
@@ -473,7 +539,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Modals (Same Logic as V3.1 but with refined UI & Toast integration) */}
+      {/* Modals */}
       {isAIModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative">
@@ -484,14 +550,75 @@ export default function App() {
               <div><label className="text-xs font-bold text-stone-500 block mb-1">{t('modal_days')}</label><select value={aiPrompt.duration} onChange={(e) => setAiPrompt({...aiPrompt, duration: e.target.value})} className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-rose-100"><option value="1">1 Day</option><option value="2">2 Days</option><option value="3">3 Days</option></select></div>
               <div><label className="text-xs font-bold text-stone-500 block mb-1">{t('modal_theme')}</label><input type="text" value={aiPrompt.theme} onChange={(e) => setAiPrompt({...aiPrompt, theme: e.target.value})} className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-rose-100" /></div>
             </div>
-            <button onClick={generateAIItinerary} disabled={isGenerating} className="w-full mt-8 bg-rose-400 text-white py-3.5 rounded-xl font-bold hover:bg-rose-500 transition flex justify-center items-center gap-2 shadow-md">{isGenerating ? <><Loader2 className="animate-spin" size={18} /><span className="text-sm ml-2">{loadingMsg}</span></> : t('modal_btn')}</button>
+            <button onClick={generateAIItinerary} disabled={isGenerating} className="w-full mt-8 bg-rose-400 text-white py-3.5 rounded-xl font-bold hover:bg-rose-500 transition flex justify-center items-center gap-2 shadow-md">
+                {isGenerating ? <><Loader2 className="animate-spin" size={18} /><span className="text-sm ml-2">{loadingMsg}</span></> : t('modal_btn')}
+            </button>
           </div>
         </div>
       )}
-      
-      {/* ... (Other modals: Food, Souvenir, Budget, Packing, Settings - Included with same logic) ... */}
-      {/* Code omitted for brevity, fully functional in actual deployment */}
-      
+      {showFoodModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+                <button onClick={() => setShowFoodModal(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-600"><X size={24} /></button>
+                <h3 className="text-xl font-bold text-stone-800 mb-2 flex items-center gap-2"><UtensilsCrossed className="text-orange-400" /> {t('food_title')}</h3>
+                <p className="text-xs text-stone-500 mb-4">{t('food_desc')}</p>
+                <div className="flex gap-2 mb-6">
+                    <input type="text" value={foodPreference} onChange={(e) => setFoodPreference(e.target.value)} placeholder={t('food_placeholder')} className="flex-1 bg-stone-50 border border-stone-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-orange-100" onKeyPress={(e) => e.key === 'Enter' && generateFoodRecommendations()} />
+                    <button onClick={generateFoodRecommendations} className="bg-orange-400 text-white p-3 rounded-xl hover:bg-orange-500 transition shadow-md"><Search size={20} /></button>
+                </div>
+                {isFoodLoading ? <div className="py-10 flex flex-col items-center text-stone-400"><Loader2 size={32} className="animate-spin text-orange-400 mb-2" /><p className="text-xs">{loadingMsg}</p></div> : (
+                    <div className="space-y-3">{foodList.map((item, idx) => (<div key={idx} onClick={() => handleSearchMap(`${aiPrompt.city} ${item.name}`)} className="bg-orange-50 p-3 rounded-xl border border-orange-100 cursor-pointer hover:bg-orange-100 transition"><div className="flex justify-between items-start"><h4 className="font-bold text-stone-800 text-sm">{item.name}</h4><span className="text-[10px] text-orange-600 bg-white px-2 py-0.5 rounded-full border border-orange-200">Pick</span></div><p className="text-xs text-stone-600 mt-1 mb-2">{item.desc}</p></div>))}</div>
+                )}
+            </div>
+        </div>
+      )}
+      {showSouvenirModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+                <button onClick={() => setShowSouvenirModal(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-600"><X size={24} /></button>
+                <h3 className="text-xl font-bold text-stone-800 mb-2 flex items-center gap-2"><ShoppingBag className="text-teal-500" /> {t('souvenir_title')}</h3>
+                <p className="text-xs text-stone-500 mb-4">{t('souvenir_desc')}</p>
+                <div className="bg-teal-50 p-3 rounded-xl mb-4 text-sm text-teal-700 font-medium flex justify-between items-center border border-teal-100"><span>📍 {aiPrompt.city}</span><span className="text-xs bg-white px-2 py-1 rounded-lg cursor-pointer hover:bg-teal-100" onClick={generateSouvenirList}><RefreshCw size={12} className="inline mr-1"/>Refresh</span></div>
+                {isSouvenirLoading ? <div className="py-10 flex flex-col items-center text-stone-400"><Loader2 size={32} className="animate-spin text-teal-500 mb-2" /><p className="text-xs">{loadingMsg}</p></div> : (
+                    <div className="space-y-3">{souvenirList.map((item, idx) => (<div key={idx} className="bg-white p-3 rounded-xl border border-stone-100 shadow-sm flex gap-3 items-center"><div className="w-10 h-10 bg-teal-50 rounded-full flex items-center justify-center text-teal-600 flex-shrink-0"><Gift size={20} /></div><div className="flex-1"><h4 className="font-bold text-stone-800 text-sm">{item.name}</h4><p className="text-xs text-stone-500 mt-0.5">{item.desc}</p><span className="text-[10px] text-teal-600 font-bold mt-1 inline-block">{item.price}</span></div></div>))}</div>
+                )}
+            </div>
+        </div>
+      )}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl relative">
+                <button onClick={() => setIsSettingsOpen(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-600"><X size={24} /></button>
+                <h3 className="text-xl font-bold text-stone-800 mb-6 flex items-center gap-2"><Globe className="text-rose-400" /> Language</h3>
+                <div className="space-y-2 mb-6">
+                    {[{ code: 'ko', label: '한국어 🇰🇷' }, { code: 'en', label: 'English 🇺🇸' }, { code: 'zh', label: '中文 🇨🇳' }, { code: 'ja', label: '日本語 🇯🇵' }].map((lang) => (<button key={lang.code} onClick={() => { setLanguage(lang.code); setIsSettingsOpen(false); }} className={`w-full p-4 rounded-xl text-left font-medium transition flex justify-between items-center ${language === lang.code ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-white hover:bg-stone-50 text-stone-600 border border-transparent'}`}>{lang.label}{language === lang.code && <CheckSquare size={16} />}</button>))}
+                </div>
+                <button onClick={resetData} className="w-full p-3 rounded-xl bg-stone-100 text-stone-500 text-xs font-bold hover:bg-red-50 hover:text-red-500 transition flex items-center justify-center gap-2"><Trash2 size={14} /> {t('reset_data')}</button>
+            </div>
+        </div>
+      )}
+      {showPackingModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white w-full max-w-sm sm:rounded-3xl rounded-t-3xl p-6 shadow-2xl relative max-h-[80vh] overflow-y-auto">
+                <button onClick={() => setShowPackingModal(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-600"><X size={24} /></button>
+                <h3 className="text-xl font-bold text-stone-800 mb-4 flex items-center gap-2"><ClipboardList className="text-cyan-500" /> {t('packing_title')}</h3>
+                <div className="mb-4 bg-cyan-50 p-3 rounded-xl text-sm text-cyan-700 border border-cyan-100"><span className="font-bold">{aiPrompt.city}</span> {t('packing_desc')}</div>
+                {isPackingLoading ? <div className="py-10 flex flex-col items-center text-stone-400"><Loader2 size={32} className="animate-spin text-cyan-500 mb-2" /><p className="text-xs">{loadingMsg}</p></div> : (
+                    <div className="space-y-4">{Object.keys(packingList).length > 0 ? (Object.entries(packingList).map(([category, items], idx) => (<div key={idx}><h4 className="font-bold text-xs text-stone-400 uppercase mb-2 tracking-wider">{category}</h4><div className="space-y-2">{Array.isArray(items) && items.map((item, i) => (<div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-50 transition cursor-pointer group"><div className="w-5 h-5 rounded border-2 border-stone-200 group-hover:border-cyan-400 bg-white flex items-center justify-center text-white"><CheckSquare size={12} className="opacity-0 group-hover:opacity-100 text-cyan-500" /></div><span className="text-sm text-stone-700">{item}</span></div>))}</div></div>))) : (<div className="text-center py-8 text-stone-400"><p>No list.</p><button onClick={generatePackingList} className="mt-2 text-cyan-500 font-bold text-sm underline">Create Now</button></div>)}</div>
+                )}
+            </div>
+        </div>
+      )}
+      {showBudgetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+           <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative">
+              <button onClick={() => setShowBudgetModal(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-600"><X size={24} /></button>
+              <h3 className="text-xl font-bold text-stone-800 mb-4 flex items-center gap-2"><Calculator className="text-emerald-500" /> {t('budget_title')}</h3>
+              {isBudgetLoading ? <div className="py-10 flex flex-col items-center text-stone-400"><Loader2 size={32} className="animate-spin text-emerald-500 mb-2" /><p className="text-xs">{loadingMsg}</p></div> : budgetResult ? (<div className="space-y-4"><div className="bg-emerald-50 p-4 rounded-2xl text-center border border-emerald-100"><p className="text-xs text-emerald-600 mb-1">{t('budget_total')}</p><p className="text-2xl font-bold text-emerald-700">{budgetResult.total?.toLocaleString()}원</p></div><div className="bg-stone-50 p-3 rounded-xl text-xs text-stone-500">💡 {budgetResult.comment}</div></div>) : (<div className="text-center text-stone-400">{t('error_fallback')}</div>)}
+           </div>
+        </div>
+      )}
+
       {/* Bottom Nav */}
       <nav className="fixed bottom-6 left-6 right-6 max-w-md mx-auto bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-stone-200/50 border border-stone-100 p-1.5 flex justify-between items-center z-40">
         {[
